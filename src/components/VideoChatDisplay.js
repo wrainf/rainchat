@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyCVmMxz4PtAE8CoQCKY9kpJzYw3nWTkKkM",
   authDomain: "rainchat-f1e6c.firebaseapp.com",
@@ -25,6 +26,7 @@ function VideoChatDisplay(props) {
     const answerBtn = useRef(null);
     const webcamBtn = useRef(null);
     const callBtn = useRef(null);
+    const callerName = useRef(null);
 
     let pc = null;
     let localStream = null;
@@ -45,12 +47,6 @@ function VideoChatDisplay(props) {
     
       pc = new RTCPeerConnection(servers)
     
-      
-  
-      
-
-
-      console.log("IN")
       try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         console.log(localStream)
@@ -76,6 +72,7 @@ function VideoChatDisplay(props) {
         webcamBtn.current.disabled = true;
     
       } catch (error) {
+        
         console.error("Error getting user media:", error);
       }
     }
@@ -89,7 +86,11 @@ function VideoChatDisplay(props) {
       callInput.current.value = callDocument.id;
 
       pc.onicecandidate = (event) => {
-        event.candidate && offerCandidates.add(event.candidate.toJSON());
+        if(event.candidate) {
+          const candidate = event.candidate.toJSON();
+          candidate.name = props.name;
+          offerCandidates.add(candidate);
+        }
       }
 
       const offerDescription = await pc.createOffer();
@@ -113,8 +114,11 @@ function VideoChatDisplay(props) {
       answerCandidates.onSnapshot((snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if(change.type === 'added') {
-            const candidate = new RTCIceCandidate(change.doc.data());
+            const data = change.doc.data()
+            const candidate = new RTCIceCandidate(data);
             pc.addIceCandidate(candidate);
+            console.log(data.name);
+            callerName.current.textContent = data.name;
           }
         })
       })
@@ -129,7 +133,13 @@ function VideoChatDisplay(props) {
       const offerCandidates = callDoc.collection('offerCandidates');
 
       pc.onicecandidate = (event) => {
-        event.candidate && answerCandidates.add(event.candidate.toJSON());
+        if(event.candidate) {
+          const candidate = event.candidate.toJSON();
+          candidate.name = props.name;
+          answerCandidates.add(candidate);
+        }
+        
+        
       };
 
       const callData = (await callDoc.get()).data();
@@ -153,6 +163,7 @@ function VideoChatDisplay(props) {
           if (change.type === 'added') {
             let data = change.doc.data();
             pc.addIceCandidate(new RTCIceCandidate(data));
+            callerName.current.textContent = data.name;
           }
         });
       });
@@ -175,6 +186,7 @@ function VideoChatDisplay(props) {
       webcamBtn.current.disabled = false; // Enable the webcam button
       answerBtn.current.disabled = true; // Enable the answer button
       callInput.current.value = ''; // Clear the call input
+      callerName.current.textContent = '';
     }
     
   
@@ -191,14 +203,14 @@ function VideoChatDisplay(props) {
 
             <div>
               <video id="remoteStream" autoPlay playsInline ref={remoteVideo}></video>
-              <h3></h3>
+              <h3 ref={callerName}>""</h3>
             </div>
           </div>
         
   
   
         <div id='buttons'>
-          <button onClick={setupSources} ref={webcamBtn}>Open Webcam</button>
+          <button className='' onClick={setupSources} ref={webcamBtn}>Open Webcam</button>
           <button onClick={createOffer} ref={callBtn} disabled>Call</button>
           <input ref={callInput}/>
           <button onClick={answerOffer} ref={answerBtn} disabled>Answer</button>
