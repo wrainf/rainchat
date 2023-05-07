@@ -24,7 +24,7 @@ function Login(props) {
         <button className='btn btn-outline-primary' type="submit">Login</button>
       </div>
       
-      <p>Developed by Faiz</p>
+      <p>Developed by <a target="_black" rel="noopener noreferrer" href="https://github.com/wrainf">Faiz</a></p>
     </form>
   );
 }

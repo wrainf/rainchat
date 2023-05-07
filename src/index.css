@@ -23,10 +23,49 @@ html, body, .App {
   color: white;
 }
 
+video {
+  padding: 4px;
+  border-radius: 20px;
+  border: 2px solid var(--blue);
+  height: 512px;
+  width: 910px;
+  background-color: black;
+  object-fit: cover;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.names {
+  background-color: #1214188c;
+  padding: 0.5rem;
+}
+
+#call-buttons, #room-options {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+}
+
+#hangup {
+  background-color: #DC3545;
+  font-size: 2rem;
+  padding: 0px;
+  width: 4rem;
+  border-radius: 3rem;
+  border: 0px;
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
 
 form {
   height: 100vh;
@@ -53,7 +92,32 @@ form {
   margin-bottom: 10vh;
 }
 
+#buttons {
+  margin-top: 1rem;
+}
+
 @media (max-width: 576px) {
+
+  * {
+    font-size: 12px;
+  }
+
+  #video-chat-display {
+    height: 100vh;
+  }
+  #call-buttons{
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  video {
+    width: 100vw;
+    height: 45vh;
+    padding: 0px;
+    border-radius: 0px;
+    border: none;
+  }
+
   form {
     width: 80vw;
   }
@@ -61,8 +125,8 @@ form {
   #welcome {
     font-size: 32px;
   }
-  
-  p, #desc {
-    font-size: 12px;
+
+  p, #desc, .names {
+    font-size: 14px;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 
@@ -27,6 +27,10 @@ function VideoChatDisplay(props) {
     const webcamBtn = useRef(null);
     const callBtn = useRef(null);
     const callerName = useRef(null);
+    const callOptions = useRef(null);
+    const roomID = useRef(null);
+    const roomOptions = useRef(null);
+    
 
     let pc = null;
     let localStream = null;
@@ -57,6 +61,7 @@ function VideoChatDisplay(props) {
         })
 
         pc.ontrack = (event) => {
+          remoteVideo.current.style.display = 'block';
           event.streams[0].getTracks().forEach((track) => {
             remoteStream.addTrack(track);
           })
@@ -65,11 +70,8 @@ function VideoChatDisplay(props) {
         localVideo.current.srcObject = localStream;
         remoteVideo.current.srcObject = remoteStream;
         
-        callBtn.current.disabled = false;
-        callBtn.current.onclick = createOffer;
-        answerBtn.current.disabled = false;
-        answerBtn.current.onclick = answerOffer;
-        webcamBtn.current.disabled = true;
+        callOptions.current.style.display = 'flex';
+        webcamBtn.current.style.display = 'none';
     
       } catch (error) {
         
@@ -83,7 +85,7 @@ function VideoChatDisplay(props) {
       const offerCandidates = callDocument.collection('offerCandidates');
       const answerCandidates = callDocument.collection('answerCandidates');
 
-      callInput.current.value = callDocument.id;
+      roomID.current.textContent = "Room ID: "+callDocument.id;
 
       pc.onicecandidate = (event) => {
         if(event.candidate) {
@@ -118,12 +120,14 @@ function VideoChatDisplay(props) {
             const candidate = new RTCIceCandidate(data);
             pc.addIceCandidate(candidate);
             console.log(data.name);
+            callerName.current.style.display = 'block';
             callerName.current.textContent = data.name;
           }
         })
       })
-      hangupBtn.current.disabled = false;
-      hangupBtn.current.onclick = hangUp;
+
+      callOptions.current.style.display = 'none';
+      roomOptions.current.style.display = 'flex';
     }
 
     async function answerOffer() {
@@ -132,6 +136,7 @@ function VideoChatDisplay(props) {
       const answerCandidates = callDoc.collection('answerCandidates');
       const offerCandidates = callDoc.collection('offerCandidates');
 
+      roomID.current.textContent = "Room ID: "+callId;
       pc.onicecandidate = (event) => {
         if(event.candidate) {
           const candidate = event.candidate.toJSON();
@@ -163,12 +168,13 @@ function VideoChatDisplay(props) {
           if (change.type === 'added') {
             let data = change.doc.data();
             pc.addIceCandidate(new RTCIceCandidate(data));
+            callerName.current.style.display = 'block';
             callerName.current.textContent = data.name;
           }
         });
       });
-      hangupBtn.current.disabled = false;
-      hangupBtn.current.onclick = hangUp;
+      callOptions.current.style.display = 'none';
+      roomOptions.current.style.display = 'flex';
       
     }
 
@@ -181,40 +187,61 @@ function VideoChatDisplay(props) {
       remoteStream = null;
       localVideo.current.srcObject = null; // Clear the video srcObject
       remoteVideo.current.srcObject = null;
-      hangupBtn.current.disabled = true; // Disable the hangup button
-      callBtn.current.disabled = true; // Disable the call button
-      webcamBtn.current.disabled = false; // Enable the webcam button
-      answerBtn.current.disabled = true; // Enable the answer button
       callInput.current.value = ''; // Clear the call input
       callerName.current.textContent = '';
+      remoteVideo.current.style.display = 'none';
+      roomOptions.current.style.display = 'none';
+      webcamBtn.current.style.display = 'block';
+      callerName.current.style.display = 'none';
     }
     
   
     return (
-      <div>
-        <h1>Welcome {props.name}!</h1>
-  
+      <div id='video-chat-display'>
         
-          <div id='videos-container'>
-            <div>
-              <video id="localStream" autoPlay playsInline ref={localVideo}></video>
-              <h3>{props.name}</h3>
+        <div id='videos-container'>
+          <div style={{ position: 'relative' }}>
+            <video id="localStream" autoPlay playsInline ref={localVideo}></video>
+            <h3 className='names' style={{ position: 'absolute', bottom: '5%', left: '3%', zIndex: '1' }}>{props.name}</h3>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <video id="remoteStream" autoPlay playsInline ref={remoteVideo} style={{display: 'none'}}></video>
+            <h3 className='names' style={{ position: 'absolute', bottom: '5%', left: '3%', zIndex: '1', display: 'none' }} ref={callerName}>{null}</h3>
+          </div>
+        </div>
+        
+        <div id='buttons'>
+          <button className='btn btn-primary shadow-lg' onClick={setupSources} ref={webcamBtn}>Open Webcam</button>
+          <div id='call-buttons' ref={callOptions} style={{display: 'none'}}>
+            <div className="card bg-dark" style={{width: '18rem'}}>
+              <div className="card-body shadow-lg">
+                <h5 className="card-title">Start chatting 📞</h5>
+                <p className="card-text">Create a new call for your friend to join!</p>
+                <button className='btn btn-primary' onClick={createOffer} ref={callBtn} >New call</button>
+              </div>
             </div>
 
-            <div>
-              <video id="remoteStream" autoPlay playsInline ref={remoteVideo}></video>
-              <h3 ref={callerName}>""</h3>
+            <p style={{margin: 0}}>Or</p>
+
+            <div className="card bg-dark" style={{width: '18rem'}}>
+              <div className="card-body shadow-lg">
+                <h5 className="card-title">Join a call 🎉</h5>
+                <p className="card-text">Join an existing call with your friend. RoomID required.</p>
+                <input className='form-control' style={{marginBottom: '1rem'}} placeholder='Room ID' ref={callInput} />
+                <button className='btn btn-primary' onClick={answerOffer} ref={answerBtn}>Join call</button>
+              </div>
             </div>
+            
+            
           </div>
-        
-  
-  
-        <div id='buttons'>
-          <button className='' onClick={setupSources} ref={webcamBtn}>Open Webcam</button>
-          <button onClick={createOffer} ref={callBtn} disabled>Call</button>
-          <input ref={callInput}/>
-          <button onClick={answerOffer} ref={answerBtn} disabled>Answer</button>
-          <button onClick={hangUp} ref={hangupBtn} disabled>Hangup</button>
+          <div id='room-options' style={{display: 'none'}} ref={roomOptions}>
+            <div style={{margin: 0}} className='alert alert-primary' ref={roomID}></div>
+            <button id='hangup' onClick={hangUp} ref={hangupBtn}>×</button>
+            
+
+          </div>
+          
         </div>
   
       </div>
