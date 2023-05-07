@@ -11,6 +11,7 @@ html, body, .App {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  width: 100vw;
   background-color: var(--dark);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -26,9 +27,9 @@ html, body, .App {
 video {
   padding: 4px;
   border-radius: 20px;
+  width: 30vw;
+  height: 17vw;
   border: 2px solid var(--blue);
-  height: 512px;
-  width: 910px;
   background-color: black;
   object-fit: cover;
 }
@@ -64,7 +65,12 @@ code {
   align-items: center;
 }
 
-
+#videos-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+}
 
 
 form {
@@ -102,9 +108,16 @@ form {
     font-size: 12px;
   }
 
-  #video-chat-display {
-    height: 100vh;
+  #videos-container {
+    display: flex;
+    width: 100vw;
+    flex-direction: column;
+    gap: 0px;
   }
+  #video-container {
+    width: 100vw;
+  }
+  
   #call-buttons{
     flex-direction: column;
     gap: 0.5rem;
