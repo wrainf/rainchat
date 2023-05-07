@@ -201,7 +201,7 @@ function VideoChatDisplay(props) {
         
         <div id='videos-container'>
           <div id='video-container' style={{ position: 'relative' }}>
-            <video id="localStream" autoPlay playsInline ref={localVideo}></video>
+            <video id="localStream" autoPlay playsInline ref={localVideo} muted></video>
             <h3 className='names' style={{ position: 'absolute', bottom: '5%', left: '3%', zIndex: '1' }}>{props.name}</h3>
           </div>
 
